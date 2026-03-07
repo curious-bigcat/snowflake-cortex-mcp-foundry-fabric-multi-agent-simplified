@@ -1,12 +1,43 @@
-# Supply Chain Intelligence Demo — End-to-End Setup Guide
+<div align="center">
 
-## Complete Multi-Agent Orchestrator with Snowflake Cortex, Microsoft Fabric, and AI Foundry
+# Multi-Agent Orchestrator
 
-This guide walks you through the **entire setup** — from creating the Snowflake database to deploying a multi-agent orchestrator in Microsoft AI Foundry that routes queries across Snowflake Cortex (via MCP) and Microsoft Fabric Data Agents.
+### Snowflake Cortex MCP + Microsoft AI Foundry + Fabric Data Agents
+
+[![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)](https://www.snowflake.com)
+[![Microsoft Azure](https://img.shields.io/badge/Azure_AI_Foundry-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://ai.azure.com)
+[![Microsoft Fabric](https://img.shields.io/badge/Microsoft_Fabric-742774?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://fabric.microsoft.com)
+[![OpenAI](https://img.shields.io/badge/GPT--5.2-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
+
+[![MCP Protocol](https://img.shields.io/badge/MCP-Model_Context_Protocol-00ADD8?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNS0xMC01ek0yIDE3bDEwIDUgMTAtNS0xMC01LTEwIDV6TTIgMTJsMTAgNSAxMC01LTEwLTUtMTAgNXoiLz48L3N2Zz4=)](https://modelcontextprotocol.io)
+[![Cortex Agent](https://img.shields.io/badge/Cortex-Agent_|_Analyst_|_Search-29B5E8?style=flat-square)](https://docs.snowflake.com/en/user-guide/snowflake-cortex)
+[![OAuth 2.0](https://img.shields.io/badge/Auth-OAuth_2.0-EB5424?style=flat-square&logo=auth0&logoColor=white)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 ---
 
-## Architecture Overview
+**A production-ready multi-agent architecture that routes natural language queries across
+Snowflake and Microsoft Fabric through a unified AI Foundry orchestrator.**
+
+[Get Started](#-quick-start) | [Architecture](#-architecture) | [Setup Guide](#-phase-1-snowflake-setup-scripts-0109) | [Testing](#-phase-4-testing--validation) | [Troubleshooting](#-troubleshooting)
+
+</div>
+
+---
+
+## Highlights
+
+| | Feature | Description |
+|---|---|---|
+| <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="20"> | **Cortex Agent** | Text-to-SQL via Cortex Analyst + semantic search via 3 Cortex Search services |
+| <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="20"> | **MCP Server** | Exposes the Cortex Agent over the Model Context Protocol (SSE) for external consumption |
+| <img src="https://cdn.simpleicons.org/microsoftazure/0078D4" width="20"> | **AI Foundry Orchestrator** | GPT-5.2 powered agent that routes queries to the right data source |
+| <img src="https://cdn.simpleicons.org/microsoftazure/742774" width="20"> | **Fabric Data Agent** | NL2SQL over Lakehouse Delta tables for supplementary datasets |
+| | **Cross-Platform Queries** | Single question can pull data from both Snowflake and Fabric simultaneously |
+
+---
+
+## Architecture
 
 ```
                     ┌─────────────────────────┐
@@ -33,14 +64,26 @@ This guide walks you through the **entire setup** — from creating the Snowflak
         └──────────────┘    └──────────────────┘
 ```
 
-**What each layer does:**
-
 | Layer | Platform | Purpose |
 |---|---|---|
-| **AI Foundry Orchestrator** | Microsoft Azure | Routes user questions to the right data source |
-| **Snowflake MCP Server** | Snowflake | Exposes Cortex Agent as an MCP tool over SSE |
-| **Cortex Agent** | Snowflake | Orchestrates Cortex Analyst (SQL) + 3 Cortex Search services |
-| **Fabric Data Agent** | Microsoft Fabric | NL2SQL over Lakehouse tables (freight costs, customer returns) |
+| **AI Foundry Orchestrator** | <img src="https://cdn.simpleicons.org/microsoftazure/0078D4" width="14"> Microsoft Azure | Routes user questions to the right data source |
+| **Snowflake MCP Server** | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="14"> Snowflake | Exposes Cortex Agent as an MCP tool over SSE |
+| **Cortex Agent** | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="14"> Snowflake | Orchestrates Cortex Analyst (SQL) + 3 Cortex Search services |
+| **Fabric Data Agent** | <img src="https://cdn.simpleicons.org/microsoftazure/742774" width="14"> Microsoft Fabric | NL2SQL over Lakehouse tables |
+
+---
+
+## Quick Start
+
+> **25 steps across 5 phases — from zero to a working multi-agent orchestrator.**
+
+| Phase | Platform | Steps | What You Build |
+|:---:|---|---|---|
+| **1** | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="16"> Snowflake | Steps 1–9 | Database, tables, data, Cortex Search, Semantic View, Agent, MCP Server |
+| **2** | <img src="https://cdn.simpleicons.org/microsoftazure/742774" width="16"> Fabric | Steps 10–15 | Workspace, Lakehouse, Delta tables, Fabric Data Agent |
+| **3** | <img src="https://cdn.simpleicons.org/microsoftazure/0078D4" width="16"> AI Foundry | Steps 16–22 | GPT-5.2 deployment, orchestrator agent, MCP + Fabric tool wiring |
+| **4** | All | Step 23 | End-to-end testing across all platforms |
+| **5** | <img src="https://cdn.simpleicons.org/microsoftazure/0078D4" width="16"> Azure | Steps 24–25 | Teams/Copilot deployment, API access |
 
 ---
 
@@ -48,44 +91,50 @@ This guide walks you through the **entire setup** — from creating the Snowflak
 
 | Requirement | Details |
 |---|---|
-| **Snowflake account** | With ACCOUNTADMIN role (or equivalent privileges) and Cortex features enabled |
-| **Azure subscription** | With access to Microsoft Foundry (formerly Azure AI Foundry) |
-| **Microsoft Fabric** | F2 or higher capacity (or Power BI Premium P1+) with Fabric enabled |
+| <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="14"> **Snowflake account** | With ACCOUNTADMIN role (or equivalent) and Cortex features enabled |
+| <img src="https://cdn.simpleicons.org/microsoftazure/0078D4" width="14"> **Azure subscription** | With access to Microsoft Foundry (formerly Azure AI Foundry) |
+| <img src="https://cdn.simpleicons.org/microsoftazure/742774" width="14"> **Microsoft Fabric** | F2 or higher capacity (or Power BI Premium P1+) with Fabric enabled |
 | **Azure CLI** | Installed and authenticated (`az login`) — for SDK-based agent creation |
-| **Python 3.10+** | For SDK-based agent creation (optional) |
+| <img src="https://cdn.simpleicons.org/python/3776AB" width="14"> **Python 3.10+** | For SDK-based agent creation (optional) |
 
 ---
 
-## File Inventory
+## Repository Structure
 
-All setup files are in the `setup/` directory. The two CSV files are in the project root.
-
-| File | Purpose |
-|---|---|
-| `setup/01_database_and_warehouse.sql` | Creates database and warehouse |
-| `setup/02_create_tables.sql` | Creates all 13 tables and a stage |
-| `setup/03_load_structured_data.sql` | Loads 7 structured tables (~1,100 rows) |
-| `setup/04_load_semi_structured_data.sql` | Loads 3 semi-structured tables (~160 rows of JSON) |
-| `setup/05_load_unstructured_data.sql` | Loads 3 unstructured text tables (~63 rows) |
-| `setup/06_cortex_search_services.sql` | Creates 3 Cortex Search services |
-| `setup/07_semantic_view.sql` | Creates semantic view for Cortex Analyst |
-| `setup/08_cortex_agent.sql` | Creates Cortex Agent with 4 tools |
-| `setup/09_mcp_server.sql` | Creates MCP Server exposing the agent |
-| `setup/10_foundry_instructions.md` | Orchestrator agent instructions (paste into Foundry) |
-| `transportation_freight_costs.csv` | Freight cost data for Fabric Lakehouse (40 rows) |
-| `customer_returns_complaints.csv` | Customer returns data for Fabric Lakehouse (40 rows) |
-
----
-
-# Phase 1: Snowflake Setup (Scripts 01–09)
-
-Run these SQL scripts **in order** in a Snowflake worksheet or via SnowSQL.
+```
+.
+├── README.md                                   # This guide
+├── transportation_freight_costs.csv            # Fabric Lakehouse data (40 rows)
+├── customer_returns_complaints.csv             # Fabric Lakehouse data (40 rows)
+└── setup/
+    ├── 00_README.md                            # Setup guide (copy)
+    ├── 01_database_and_warehouse.sql           # Phase 1, Step 1
+    ├── 02_create_tables.sql                    # Phase 1, Step 2
+    ├── 03_load_structured_data.sql             # Phase 1, Step 3
+    ├── 04_load_semi_structured_data.sql        # Phase 1, Step 4
+    ├── 05_load_unstructured_data.sql           # Phase 1, Step 5
+    ├── 06_cortex_search_services.sql           # Phase 1, Step 6
+    ├── 07_semantic_view.sql                    # Phase 1, Step 7
+    ├── 08_cortex_agent.sql                     # Phase 1, Step 8
+    ├── 09_mcp_server.sql                       # Phase 1, Step 9
+    └── 10_foundry_instructions.md              # Phase 3, Step 19 (agent instructions)
+```
 
 ---
 
-## Step 1 — Create Database and Warehouse
+<div align="center">
 
-**Script:** `setup/01_database_and_warehouse.sql`
+## <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="28"> Phase 1: Snowflake Setup (Scripts 01–09)
+
+*Run these SQL scripts **in order** in a Snowflake worksheet or via SnowSQL.*
+
+</div>
+
+---
+
+### Step 1 — Create Database and Warehouse
+
+> **Script:** `setup/01_database_and_warehouse.sql`
 
 Creates:
 - **Database:** `SUPPLY_CHAIN_DEMO`
@@ -108,13 +157,14 @@ SHOW WAREHOUSES LIKE 'SUPPLY_CHAIN_WH';
 
 ---
 
-## Step 2 — Create Tables
+### Step 2 — Create Tables
 
-**Script:** `setup/02_create_tables.sql`
+> **Script:** `setup/02_create_tables.sql`
 
 Creates 13 tables across three categories and a stage for semantic models:
 
-### Structured Tables (7)
+<details>
+<summary><b>Structured Tables (7)</b> — click to expand</summary>
 
 | Table | Key Columns | Notes |
 |---|---|---|
@@ -126,7 +176,10 @@ Creates 13 tables across three categories and a stage for semantic models:
 | `SHIPMENTS` | SHIPMENT_ID (PK), PO_ID, CARRIER, CURRENT_STATUS, ACTUAL_DELIVERY_DATE | 160 shipments |
 | `STORE_SALES` | SALE_ID (PK), PRODUCT_ID, STORE_ID, CHANNEL, QUANTITY_SOLD, TOTAL_REVENUE | 500 sales records |
 
-### Semi-Structured Tables (3) — VARIANT columns with JSON
+</details>
+
+<details>
+<summary><b>Semi-Structured Tables (3)</b> — VARIANT columns with JSON</summary>
 
 | Table | Key Columns | Notes |
 |---|---|---|
@@ -134,13 +187,18 @@ Creates 13 tables across three categories and a stage for semantic models:
 | `IOT_SENSOR_LOGS` | LOG_ID (auto), WAREHOUSE_ID, SENSOR_PAYLOAD (VARIANT) | Temperature, humidity readings |
 | `DELIVERY_TRACKING_EVENTS` | EVENT_ID (auto), SHIPMENT_ID, EVENT_PAYLOAD (VARIANT) | Delivery milestones |
 
-### Unstructured Tables (3) — Free text
+</details>
+
+<details>
+<summary><b>Unstructured Tables (3)</b> — Free text</summary>
 
 | Table | Key Columns | Notes |
 |---|---|---|
 | `SUPPLIER_EMAILS` | EMAIL_ID (PK), SUPPLIER_ID, SUBJECT, EMAIL_BODY | 30 supplier communications |
 | `LOGISTICS_INCIDENT_REPORTS` | REPORT_ID (PK), INCIDENT_TYPE, REPORT_TEXT | 18 incident narratives |
 | `WAREHOUSE_INSPECTION_NOTES` | INSPECTION_ID (PK), WAREHOUSE_ID, INSPECTION_NOTES, OVERALL_RATING | 15 inspection findings |
+
+</details>
 
 Also creates:
 ```sql
@@ -150,9 +208,9 @@ CREATE OR REPLACE STAGE SEMANTIC_MODELS
 
 ---
 
-## Step 3 — Load Structured Data
+### Step 3 — Load Structured Data
 
-**Script:** `setup/03_load_structured_data.sql`
+> **Script:** `setup/03_load_structured_data.sql`
 
 Loads ~1,100 rows across the 7 structured tables:
 
@@ -168,9 +226,9 @@ Loads ~1,100 rows across the 7 structured tables:
 
 ---
 
-## Step 4 — Load Semi-Structured Data
+### Step 4 — Load Semi-Structured Data
 
-**Script:** `setup/04_load_semi_structured_data.sql`
+> **Script:** `setup/04_load_semi_structured_data.sql`
 
 Loads JSON data using `PARSE_JSON()` into VARIANT columns:
 
@@ -180,8 +238,8 @@ Loads JSON data using `PARSE_JSON()` into VARIANT columns:
 | IOT_SENSOR_LOGS | ~55 |
 | DELIVERY_TRACKING_EVENTS | ~50 |
 
-Example of how data is inserted:
 ```sql
+-- Example insert pattern:
 INSERT INTO SHIPMENT_UPDATES (SHIPMENT_ID, UPDATE_TIMESTAMP, UPDATE_PAYLOAD)
 VALUES ('SHP-001', '2025-01-03 08:00:00',
   PARSE_JSON('{"status":"In Transit","location":"Los Angeles, CA","carrier":"UPS",...}'));
@@ -189,11 +247,9 @@ VALUES ('SHP-001', '2025-01-03 08:00:00',
 
 ---
 
-## Step 5 — Load Unstructured Data
+### Step 5 — Load Unstructured Data
 
-**Script:** `setup/05_load_unstructured_data.sql`
-
-Loads free-text content:
+> **Script:** `setup/05_load_unstructured_data.sql`
 
 | Table | Row Count | Content |
 |---|---|---|
@@ -203,9 +259,9 @@ Loads free-text content:
 
 ---
 
-## Step 6 — Create Cortex Search Services
+### Step 6 — Create Cortex Search Services
 
-**Script:** `setup/06_cortex_search_services.sql`
+> **Script:** `setup/06_cortex_search_services.sql`
 
 Creates 3 Cortex Search services for semantic search over unstructured text:
 
@@ -215,26 +271,23 @@ Creates 3 Cortex Search services for semantic search over unstructured text:
 | `INCIDENT_REPORTS_SEARCH` | LOGISTICS_INCIDENT_REPORTS | REPORT_TEXT | INCIDENT_TYPE, SEVERITY, REPORT_DATE |
 | `WAREHOUSE_INSPECTIONS_SEARCH` | WAREHOUSE_INSPECTION_NOTES | INSPECTION_NOTES | WAREHOUSE_ID, INSPECTOR_NAME, OVERALL_RATING |
 
-All services use:
-- **Warehouse:** SUPPLY_CHAIN_WH
-- **Refresh interval:** 1 hour (`TARGET_LAG = '1 hour'`)
+All services use warehouse `SUPPLY_CHAIN_WH` with `TARGET_LAG = '1 hour'`.
 
-> **Important:** Wait ~2–3 minutes after running this script for the search services to finish indexing before testing.
+> [!IMPORTANT]
+> Wait **2–3 minutes** after running this script for the search services to finish indexing before testing.
 
-Verify:
 ```sql
+-- Verify:
 SHOW CORTEX SEARCH SERVICES IN SUPPLY_CHAIN_DEMO.PUBLIC;
 ```
 
 ---
 
-## Step 7 — Create Semantic View
+### Step 7 — Create Semantic View
 
-**Script:** `setup/07_semantic_view.sql`
+> **Script:** `setup/07_semantic_view.sql`
 
 Creates the semantic view `SUPPLY_CHAIN_ANALYTICS` using the Cortex Analyst (CA) extension. This is what powers natural-language-to-SQL queries.
-
-**Semantic view components:**
 
 | Component | Count | Details |
 |---|---|---|
@@ -245,7 +298,9 @@ Creates the semantic view `SUPPLY_CHAIN_ANALYTICS` using the Cortex Analyst (CA)
 | **Metrics** | 16 | Pre-defined aggregations (total revenue, avg delay, etc.) |
 | **Verified queries** | 5 | Known-good question-to-SQL mappings for accuracy |
 
-Example verified query:
+<details>
+<summary>Example verified query</summary>
+
 ```
 "What are the top 5 suppliers by total purchase order value?"
 → SELECT s.SUPPLIER_NAME, SUM(po.TOTAL_COST) AS total_po_value
@@ -253,37 +308,37 @@ Example verified query:
   GROUP BY s.SUPPLIER_NAME ORDER BY total_po_value DESC LIMIT 5;
 ```
 
+</details>
+
 ---
 
-## Step 8 — Create Cortex Agent
+### Step 8 — Create Cortex Agent
 
-**Script:** `setup/08_cortex_agent.sql`
+> **Script:** `setup/08_cortex_agent.sql`
 
 Creates `SUPPLY_CHAIN_AGENT` with 4 tools:
 
 | Tool Name | Type | Purpose | Data Source |
 |---|---|---|---|
-| `Analyst` | CORTEX_ANALYST | Natural language to SQL | Semantic view (7 structured tables) |
-| `SupplierEmailSearch` | CORTEX_SEARCH | Search supplier emails | SUPPLIER_COMMS_SEARCH |
-| `IncidentSearch` | CORTEX_SEARCH | Search incident reports | INCIDENT_REPORTS_SEARCH |
-| `InspectionSearch` | CORTEX_SEARCH | Search inspection notes | WAREHOUSE_INSPECTIONS_SEARCH |
+| `Analyst` | `CORTEX_ANALYST` | Natural language to SQL | Semantic view (7 structured tables) |
+| `SupplierEmailSearch` | `CORTEX_SEARCH` | Search supplier emails | SUPPLIER_COMMS_SEARCH |
+| `IncidentSearch` | `CORTEX_SEARCH` | Search incident reports | INCIDENT_REPORTS_SEARCH |
+| `InspectionSearch` | `CORTEX_SEARCH` | Search inspection notes | WAREHOUSE_INSPECTIONS_SEARCH |
 
-Configuration:
-- **Model:** auto (Snowflake selects the best model)
-- **Budget:** 16,000 tokens per response
+Configuration: **Model:** auto | **Budget:** 16,000 tokens per response
 
-Verify:
 ```sql
+-- Verify:
 SHOW AGENTS IN SUPPLY_CHAIN_DEMO.PUBLIC;
 ```
 
 ---
 
-## Step 9 — Create MCP Server
+### Step 9 — Create MCP Server
 
-**Script:** `setup/09_mcp_server.sql`
+> **Script:** `setup/09_mcp_server.sql`
 
-Creates `SUPPLY_CHAIN_MCP_SERVER` that exposes the Cortex Agent via the Model Context Protocol (MCP):
+Creates `SUPPLY_CHAIN_MCP_SERVER` that exposes the Cortex Agent via the Model Context Protocol:
 
 ```sql
 CREATE OR REPLACE MCP SERVER SUPPLY_CHAIN_MCP_SERVER
@@ -298,16 +353,17 @@ CREATE OR REPLACE MCP SERVER SUPPLY_CHAIN_MCP_SERVER
 https://<YOUR_ACCOUNT>.snowflakecomputing.com/api/v2/databases/SUPPLY_CHAIN_DEMO/schemas/PUBLIC/mcp-servers/SUPPLY_CHAIN_MCP_SERVER/sse
 ```
 
-Replace `<YOUR_ACCOUNT>` with your Snowflake account identifier (e.g., `SFSEAPAC-BSURESH`).
+> [!NOTE]
+> Replace `<YOUR_ACCOUNT>` with your Snowflake account identifier (e.g., `SFSEAPAC-BSURESH`).
 
-Verify:
 ```sql
+-- Verify:
 SHOW MCP SERVERS IN SUPPLY_CHAIN_DEMO.PUBLIC;
 ```
 
 ---
 
-## Verify Phase 1
+### Verify Phase 1
 
 After running all 9 scripts, run these verification queries:
 
@@ -334,7 +390,8 @@ SHOW AGENTS IN SUPPLY_CHAIN_DEMO.PUBLIC;
 SHOW MCP SERVERS IN SUPPLY_CHAIN_DEMO.PUBLIC;
 ```
 
-Expected row counts:
+<details>
+<summary><b>Expected row counts</b></summary>
 
 | Table | Rows |
 |---|---|
@@ -349,15 +406,21 @@ Expected row counts:
 | LOGISTICS_INCIDENT_REPORTS | 18 |
 | WAREHOUSE_INSPECTION_NOTES | 15 |
 
----
-
-# Phase 2: Microsoft Fabric Setup
-
-In this phase, you create a Fabric workspace with a Lakehouse containing the two CSV files that are **not** in Snowflake — transportation freight costs and customer returns/complaints.
+</details>
 
 ---
 
-## Step 10 — Create a Fabric Workspace
+<div align="center">
+
+## <img src="https://cdn.simpleicons.org/microsoftazure/742774" width="28"> Phase 2: Microsoft Fabric Setup
+
+*Create a Fabric workspace with a Lakehouse containing supplementary datasets.*
+
+</div>
+
+---
+
+### Step 10 — Create a Fabric Workspace
 
 1. Go to [https://app.fabric.microsoft.com](https://app.fabric.microsoft.com) and sign in
 2. In the left navigation, select **Workspaces** > **New workspace**
@@ -367,7 +430,7 @@ In this phase, you create a Fabric workspace with a Lakehouse containing the two
 
 ---
 
-## Step 11 — Create a Lakehouse
+### Step 11 — Create a Lakehouse
 
 1. Inside the `SupplyChainDemo` workspace, click **+ New item**
 2. Search for **Lakehouse** and select it
@@ -377,9 +440,9 @@ In this phase, you create a Fabric workspace with a Lakehouse containing the two
 
 ---
 
-## Step 12 — Upload CSV Files to the Lakehouse
+### Step 12 — Upload CSV Files to the Lakehouse
 
-You have two CSV files in the project root directory:
+Two CSV files are included in the project root:
 
 | File | Description | Rows | Key Columns |
 |---|---|---|---|
@@ -396,7 +459,7 @@ You have two CSV files in the project root directory:
 
 ---
 
-## Step 13 — Load CSV Files into Delta Tables
+### Step 13 — Load CSV Files into Delta Tables
 
 For each CSV file:
 
@@ -409,7 +472,7 @@ For each CSV file:
 
 ---
 
-## Step 14 — Verify the Lakehouse Tables
+### Step 14 — Verify the Lakehouse Tables
 
 1. In the Lakehouse explorer, expand **Tables** > **dbo** and confirm both tables appear
 2. Click each table to preview data
@@ -435,14 +498,14 @@ ORDER BY return_count DESC;
 
 ---
 
-## Step 15 — Create a Fabric Data Agent
+### Step 15 — Create a Fabric Data Agent
 
 1. In the `SupplyChainDemo` workspace, click **+ New item**
 2. Search for **Data Agent** and select **Fabric data agent** (Preview)
 3. Name it: `SupplyChainFreightReturnsAgent`
 4. Click **Create**
 
-### Add the Lakehouse as a Data Source
+#### Add the Lakehouse as a Data Source
 
 1. In the OneLake catalog that appears, find and select `SupplyChainLakehouse`
 2. Click **Add**
@@ -450,9 +513,12 @@ ORDER BY return_count DESC;
    - `transportation_freight_costs`
    - `customer_returns_complaints`
 
-### Add Data Agent Instructions
+#### Add Data Agent Instructions
 
 Click the **Data agent instructions** button (top right) and paste:
+
+<details>
+<summary><b>Click to expand instructions</b></summary>
 
 ```
 You are a Supply Chain Data Agent specializing in transportation costs and customer returns.
@@ -480,11 +546,15 @@ Guidelines:
 - Complaint severity: Critical > High > Medium > Low
 ```
 
-### Add Example Queries
+</details>
+
+#### Add Example Queries
 
 Click **Example queries** and add these question-SQL pairs:
 
-**Question 1:** Which carriers have the highest freight costs per kg?
+<details>
+<summary><b>Question 1:</b> Which carriers have the highest freight costs per kg?</summary>
+
 ```sql
 SELECT carrier,
        COUNT(*) AS total_shipments,
@@ -496,7 +566,11 @@ GROUP BY carrier
 ORDER BY avg_rate_per_kg DESC
 ```
 
-**Question 2:** Which suppliers have the most product defect returns?
+</details>
+
+<details>
+<summary><b>Question 2:</b> Which suppliers have the most product defect returns?</summary>
+
 ```sql
 SELECT supplier_name,
        COUNT(*) AS total_returns,
@@ -509,7 +583,11 @@ GROUP BY supplier_name
 ORDER BY total_returns DESC
 ```
 
-**Question 3:** Show disputed or outstanding freight invoices
+</details>
+
+<details>
+<summary><b>Question 3:</b> Show disputed or outstanding freight invoices</summary>
+
 ```sql
 SELECT freight_id, carrier, origin_city, total_freight_cost,
        invoice_number, invoice_status, damage_claim_amount, notes
@@ -518,7 +596,9 @@ WHERE invoice_status IN ('Disputed', 'Outstanding')
 ORDER BY total_freight_cost DESC
 ```
 
-### Test the Data Agent
+</details>
+
+#### Test the Data Agent
 
 Use the chat interface to test:
 - "Which carriers have the most late deliveries?"
@@ -526,20 +606,24 @@ Use the chat interface to test:
 - "What is the total damage claim amount by carrier?"
 - "Which suppliers have the highest return rates?"
 
-### Publish the Data Agent
+#### Publish the Data Agent
 
 1. Click **Publish** in the top toolbar
 2. The agent is now available for integration with AI Foundry
 
 ---
 
-# Phase 3: Microsoft AI Foundry — Orchestrator Agent
+<div align="center">
 
-In this phase, you create the orchestrator agent in AI Foundry that connects to both the Snowflake MCP Server and the Fabric Data Agent.
+## <img src="https://cdn.simpleicons.org/microsoftazure/0078D4" width="28"> Phase 3: Microsoft AI Foundry — Orchestrator Agent
+
+*Create the orchestrator agent that connects to both the Snowflake MCP Server and the Fabric Data Agent.*
+
+</div>
 
 ---
 
-## Step 16 — Create an AI Foundry Project
+### Step 16 — Create an AI Foundry Project
 
 1. Go to [https://ai.azure.com](https://ai.azure.com) (Microsoft Foundry portal)
 2. Click **+ Create project** (or select an existing project)
@@ -552,7 +636,7 @@ In this phase, you create the orchestrator agent in AI Foundry that connects to 
 
 ---
 
-## Step 17 — Deploy the Latest OpenAI Model
+### Step 17 — Deploy the Latest OpenAI Model
 
 1. In your Foundry project, go to **Models + endpoints** in the left navigation
 2. Click **+ Deploy model** > **Deploy base model**
@@ -564,6 +648,7 @@ In this phase, you create the orchestrator agent in AI Foundry that connects to 
 5. Click **Deploy**
 6. Note the **deployment name** — you will need it when creating the agent
 
+> [!TIP]
 > **Model availability (March 2026):**
 >
 > | Model | Best For | Regions |
@@ -575,7 +660,7 @@ In this phase, you create the orchestrator agent in AI Foundry that connects to 
 
 ---
 
-## Step 18 — Set Up OAuth Authentication for Snowflake MCP
+### Step 18 — Set Up OAuth Authentication for Snowflake MCP
 
 Run in Snowflake (as ACCOUNTADMIN):
 
@@ -598,13 +683,14 @@ DESCRIBE SECURITY INTEGRATION foundry_mcp_oauth;
 -- Look for OAUTH_CLIENT_ID in the output
 ```
 
-> **Important:** Save the `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` securely. You will need them in Step 20.
+> [!WARNING]
+> Save the `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` securely. You will need them in Step 20.
 
 ---
 
-## Step 19 — Create the Orchestrator Agent
+### Step 19 — Create the Orchestrator Agent
 
-### Option A: Via the Foundry Portal (No Code)
+#### Option A: Via the Foundry Portal (No Code)
 
 1. In your Foundry project, go to **Agents** in the left navigation
 2. Click **+ New agent**
@@ -614,7 +700,7 @@ DESCRIBE SECURITY INTEGRATION foundry_mcp_oauth;
    - **Instructions:** Paste the full content from `setup/10_foundry_instructions.md`
 4. Under **Tools**, you will add the Snowflake MCP Server (Step 20) and Fabric Data Agent (Step 21)
 
-### Option B: Via Python SDK
+#### Option B: Via Python SDK
 
 Install dependencies:
 ```bash
@@ -627,7 +713,9 @@ PROJECT_ENDPOINT=https://<your-foundry-resource>.services.ai.azure.com/api/proje
 MODEL_DEPLOYMENT_NAME=gpt-5-2-supply-chain
 ```
 
-Create `create_agent.py`:
+<details>
+<summary><b>create_agent.py</b> — click to expand</summary>
+
 ```python
 import os
 from dotenv import load_dotenv
@@ -666,6 +754,8 @@ agent = project_client.agents.create_version(
 print(f"Agent created: id={agent.id}, name={agent.name}, version={agent.version}")
 ```
 
+</details>
+
 Run:
 ```bash
 az login
@@ -674,9 +764,9 @@ python create_agent.py
 
 ---
 
-## Step 20 — Add Snowflake MCP Server as a Tool
+### Step 20 — Add Snowflake MCP Server as a Tool
 
-### Create a Connection in AI Foundry
+#### Create a Connection in AI Foundry
 
 1. In your Foundry project, go to **Management** > **Connected resources** (or **Settings** > **Connections**)
 2. Click **+ New connection**
@@ -691,7 +781,7 @@ python create_agent.py
    - **Authorization endpoint:** `https://SFSEAPAC-BSURESH.snowflakecomputing.com/oauth/authorize`
 5. Click **Save**
 
-### Add the MCP Server Tool to the Agent
+#### Add the MCP Server Tool to the Agent
 
 1. Go to your agent **SupplyChainOrchestrator**
 2. Click **Tools** in the agent configuration
@@ -703,7 +793,8 @@ python create_agent.py
    - **Require approval:** `never` (for demo; use `always` in production)
 5. Click **Save**
 
-### MCP Server Endpoint Reference
+<details>
+<summary><b>MCP Server Endpoint Reference</b></summary>
 
 ```
 Endpoint URL:
@@ -724,9 +815,11 @@ Authentication:
   - Programmatic Access Token (PAT) for development/testing
 ```
 
+</details>
+
 ---
 
-## Step 21 — Connect Fabric Data Agent to the Foundry Orchestrator
+### Step 21 — Connect Fabric Data Agent to the Foundry Orchestrator
 
 1. In your Foundry project, go to your **SupplyChainOrchestrator** agent
 2. Click **Tools** > **+ Add tool**
@@ -735,43 +828,50 @@ Authentication:
    - Select the `SupplyChainFreightReturnsAgent`
 4. Click **Add**
 
-> **Alternative — A2A Protocol:** If direct Fabric integration is not available in your region, you can use the Agent-to-Agent (A2A) protocol:
+> [!TIP]
+> **Alternative — A2A Protocol:** If direct Fabric integration is not available in your region, use the Agent-to-Agent (A2A) protocol:
 > 1. In **Tools** > **+ Add tool** > **A2A endpoint**
 > 2. Provide the Fabric Data Agent's endpoint URL
 > 3. Configure authentication (Entra ID)
 
 ---
 
-## Step 22 — Query Routing Rules
+### Step 22 — Query Routing Rules
 
-The orchestrator instructions (`setup/10_foundry_instructions.md`) contain routing logic that directs queries to the right data source:
+The orchestrator instructions (`setup/10_foundry_instructions.md`) contain routing logic:
 
 | Query Topic | Routed To | Tool Used |
 |---|---|---|
-| Suppliers, reliability scores | Snowflake | MCP → Cortex Analyst |
-| Products, categories | Snowflake | MCP → Cortex Analyst |
-| Inventory, stock levels, reorder points | Snowflake | MCP → Cortex Analyst |
-| Purchase orders, delays | Snowflake | MCP → Cortex Analyst |
-| Shipments, carriers, delivery status | Snowflake | MCP → Cortex Analyst |
-| Store sales, revenue, channels | Snowflake | MCP → Cortex Analyst |
-| Supplier emails | Snowflake | MCP → Cortex Search (SUPPLIER_COMMS_SEARCH) |
-| Incident reports | Snowflake | MCP → Cortex Search (INCIDENT_REPORTS_SEARCH) |
-| Warehouse inspections | Snowflake | MCP → Cortex Search (WAREHOUSE_INSPECTIONS_SEARCH) |
-| Freight costs, carrier invoices, damage claims | Fabric | Data Agent (NL2SQL) |
-| Customer returns, RMAs, complaints, refunds | Fabric | Data Agent (NL2SQL) |
-| Cross-platform analysis | Both | MCP + Data Agent → synthesized response |
+| Suppliers, reliability scores | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | MCP → Cortex Analyst |
+| Products, categories | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | MCP → Cortex Analyst |
+| Inventory, stock levels, reorder points | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | MCP → Cortex Analyst |
+| Purchase orders, delays | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | MCP → Cortex Analyst |
+| Shipments, carriers, delivery status | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | MCP → Cortex Analyst |
+| Store sales, revenue, channels | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | MCP → Cortex Analyst |
+| Supplier emails | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | MCP → Cortex Search |
+| Incident reports | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | MCP → Cortex Search |
+| Warehouse inspections | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | MCP → Cortex Search |
+| Freight costs, carrier invoices | <img src="https://cdn.simpleicons.org/microsoftazure/742774" width="12"> Fabric | Data Agent (NL2SQL) |
+| Customer returns, complaints | <img src="https://cdn.simpleicons.org/microsoftazure/742774" width="12"> Fabric | Data Agent (NL2SQL) |
+| Cross-platform analysis | Both | MCP + Data Agent |
 
 ---
 
-# Phase 4: Testing and Validation
+<div align="center">
+
+## Phase 4: Testing & Validation
+
+*Verify the multi-agent orchestrator routes queries correctly across all platforms.*
+
+</div>
 
 ---
 
-## Step 23 — Test the Multi-Agent Orchestrator
+### Step 23 — Test the Multi-Agent Orchestrator
 
 In your Foundry agent's chat interface, test these queries:
 
-### Snowflake-routed queries (via MCP)
+#### <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="16"> Snowflake-routed queries (via MCP)
 
 1. "Which suppliers have reliability scores below 0.7?"
 2. "What products are at risk of stockout in the next 5 days?"
@@ -780,21 +880,19 @@ In your Foundry agent's chat interface, test these queries:
 5. "Show me warehouse inspection reports with Poor ratings"
 6. "What incidents involved temperature violations?"
 
-### Fabric-routed queries
+#### <img src="https://cdn.simpleicons.org/microsoftazure/742774" width="16"> Fabric-routed queries
 
 7. "Which carriers have the highest freight costs per kg?"
 8. "Show me all disputed freight invoices"
 9. "What products have the most customer returns due to defects?"
 10. "Which suppliers have critical safety issues in customer returns?"
 
-### Cross-platform queries (both data sources)
+#### Cross-platform queries (both data sources)
 
 11. "Which suppliers have both high delivery delays AND high return rates?"
-    - Expected: Agent queries Snowflake for delay data AND Fabric for return data, then synthesizes
+    - *Expected: Agent queries Snowflake for delay data AND Fabric for return data, then synthesizes*
 12. "Compare Shenzhen Fast Supply's performance across shipments, POs, and customer complaints"
-    - Expected: Agent queries Snowflake for PO/shipment data AND Fabric for return data
-
-### Expected routing behavior
+    - *Expected: Agent queries Snowflake for PO/shipment data AND Fabric for return data*
 
 | Query Type | Data Source | Tool Used |
 |---|---|---|
@@ -806,22 +904,22 @@ In your Foundry agent's chat interface, test these queries:
 
 ---
 
-# Phase 5: Production Deployment (Optional)
+<div align="center">
+
+## Phase 5: Production Deployment (Optional)
+
+</div>
 
 ---
 
-## Step 24 — Expose via Microsoft Teams / Copilot
-
-AI Foundry agents can be published to Microsoft 365 Copilot and Teams:
+### Step 24 — Expose via Microsoft Teams / Copilot
 
 1. In Foundry, go to your agent > **Deploy**
 2. Select **Microsoft 365 Copilot** or **Teams**
 3. Follow the Copilot Studio integration prompts
-4. Your supply chain team can now ask questions directly in Teams
+4. Your team can now ask questions directly in Teams
 
-## Step 25 — API Access
-
-For programmatic access, use the Foundry API:
+### Step 25 — API Access
 
 ```bash
 # Authenticate
@@ -840,9 +938,10 @@ curl -X POST "https://<YOUR-FOUNDRY-RESOURCE>.services.ai.azure.com/api/projects
 
 ---
 
-# Complete Data Summary
+## Data Summary
 
-## Snowflake Data (via Cortex Agent + MCP)
+<details>
+<summary><b>Snowflake Data</b> — via Cortex Agent + MCP</summary>
 
 | Category | Tables | Total Rows |
 |---|---|---|
@@ -850,99 +949,94 @@ curl -X POST "https://<YOUR-FOUNDRY-RESOURCE>.services.ai.azure.com/api/projects
 | Semi-structured | SHIPMENT_UPDATES, IOT_SENSOR_LOGS, DELIVERY_TRACKING_EVENTS | ~160 |
 | Unstructured | SUPPLIER_EMAILS, LOGISTICS_INCIDENT_REPORTS, WAREHOUSE_INSPECTION_NOTES | 63 |
 
-## Fabric Lakehouse Data (via Data Agent)
+</details>
+
+<details>
+<summary><b>Fabric Lakehouse Data</b> — via Data Agent</summary>
 
 | Table | Rows | Key Data |
 |---|---|---|
-| `transportation_freight_costs` | 40 | Freight IDs FRT-001 to FRT-040, 6 carriers (UPS, FedEx, DHL, USPS, Maersk, XPO Logistics), invoice statuses (Paid, Disputed, Outstanding), detention charges, damage claims |
-| `customer_returns_complaints` | 40 | Return IDs RET-001 to RET-040, linked to Snowflake suppliers/products, reason categories (Product Defect, Shipping Damage, Safety Issue, Fulfillment Error, Product Quality, Customer Misuse), severity levels, SLA tracking |
+| `transportation_freight_costs` | 40 | 6 carriers, invoice statuses, detention charges, damage claims |
+| `customer_returns_complaints` | 40 | Linked to Snowflake suppliers/products, severity levels, SLA tracking |
 
-## Key Cross-Platform Insights the Orchestrator Can Surface
-
-- **Shenzhen Fast Supply** (Supplier 7): Low reliability in Snowflake + highest return count in Fabric (4 returns, including 2 Critical safety issues)
-- **Casablanca Imports** (Supplier 16): Customs issues in Snowflake + worst carrier rating (1.5–1.8) and safety incident in Fabric returns
-- **Maersk**: Frequent ocean delays in Snowflake shipments + disputed invoices and damage claims in Fabric freight data
-- **MidWest Industrial** (Supplier 8): Generally reliable in Snowflake but 2 SLA breaches in Fabric returns
+</details>
 
 ---
 
-# Quick Reference Checklist
-
-| # | Task | Platform | Script / Reference |
-|---|---|---|---|
-| 1 | Create database and warehouse | Snowflake | `01_database_and_warehouse.sql` |
-| 2 | Create 13 tables | Snowflake | `02_create_tables.sql` |
-| 3 | Load structured data (1,100 rows) | Snowflake | `03_load_structured_data.sql` |
-| 4 | Load semi-structured JSON data (~160 rows) | Snowflake | `04_load_semi_structured_data.sql` |
-| 5 | Load unstructured text data (63 rows) | Snowflake | `05_load_unstructured_data.sql` |
-| 6 | Create 3 Cortex Search services | Snowflake | `06_cortex_search_services.sql` |
-| 7 | Create semantic view (Cortex Analyst) | Snowflake | `07_semantic_view.sql` |
-| 8 | Create Cortex Agent (4 tools) | Snowflake | `08_cortex_agent.sql` |
-| 9 | Create MCP Server | Snowflake | `09_mcp_server.sql` |
-| 10 | Create Fabric workspace | Fabric | Step 10 |
-| 11 | Create Lakehouse | Fabric | Step 11 |
-| 12 | Upload CSV files | Fabric | Step 12 |
-| 13 | Load CSVs into Delta tables | Fabric | Step 13 |
-| 14 | Verify Lakehouse tables | Fabric | Step 14 |
-| 15 | Create Fabric Data Agent | Fabric | Step 15 |
-| 16 | Create AI Foundry project | Foundry | Step 16 |
-| 17 | Deploy GPT-5.2 model | Foundry | Step 17 |
-| 18 | Set up Snowflake OAuth for MCP | Snowflake | Step 18 |
-| 19 | Create orchestrator agent | Foundry | Step 19 |
-| 20 | Add Snowflake MCP as tool | Foundry | Step 20 |
-| 21 | Connect Fabric Data Agent | Foundry | Step 21 |
-| 22 | Verify routing rules | — | Step 22 |
-| 23 | Test multi-agent orchestrator | Foundry | Step 23 |
-
----
-
-# Troubleshooting
+## Troubleshooting
 
 | Issue | Solution |
 |---|---|
-| MCP tool call times out | Snowflake MCP non-streaming timeout is 50 seconds. Simplify queries or increase warehouse size |
+| MCP tool call times out | Snowflake MCP non-streaming timeout is 50s. Simplify queries or increase warehouse size |
 | OAuth token errors | Verify `OAUTH_CLIENT_ID` and secret. Ensure security integration is `ENABLED = TRUE` |
 | Fabric Data Agent returns no results | Check that tables are loaded in Lakehouse (not just in Files folder). Refresh the explorer |
 | Model not available in region | Switch to `East US 2` or `Sweden Central` for widest GPT-5.x availability |
 | Agent doesn't route correctly | Review instructions in `10_foundry_instructions.md` — ensure routing rules are explicit |
 | MCP hostname issues | Use hyphens (-) not underscores (_) in hostnames for MCP server connections |
 | Cortex Search returns no results | Wait 2–3 minutes after creating search services for indexing to complete |
-| Semi-structured queries fail | Ensure VARIANT columns are queried with proper path notation (e.g., `SENSOR_PAYLOAD:temperature`) |
+| Semi-structured queries fail | Ensure VARIANT columns are queried with path notation (e.g., `SENSOR_PAYLOAD:temperature`) |
 | Semantic view errors | Check that all 7 structured tables have data before creating the semantic view |
+| IP not allowed (error 390420) | Add your IP to the Snowflake network policy: `ALTER NETWORK POLICY ... SET ALLOWED_IP_LIST = (...)` |
 
 ---
 
-# Cleanup
+## Cleanup
 
+<details>
+<summary><b>Remove all resources</b></summary>
+
+**Snowflake:**
 ```sql
--- Remove all Snowflake objects
 DROP DATABASE IF EXISTS SUPPLY_CHAIN_DEMO;
 DROP WAREHOUSE IF EXISTS SUPPLY_CHAIN_WH;
-
--- Remove OAuth integration (if created)
 DROP SECURITY INTEGRATION IF EXISTS foundry_mcp_oauth;
 ```
 
-For Fabric:
+**Fabric:**
 1. Delete the `SupplyChainFreightReturnsAgent` data agent
 2. Delete the `SupplyChainLakehouse` lakehouse
 3. Delete the `SupplyChainDemo` workspace
 
-For AI Foundry:
+**AI Foundry:**
 1. Delete the `SupplyChainOrchestrator` agent
 2. Delete the model deployment
 3. Delete the project (if no longer needed)
 
+</details>
+
 ---
 
-# References
+## References
 
-- [Snowflake Managed MCP Server Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-mcp)
-- [Snowflake QuickStart: AI Foundry + MCP](https://www.snowflake.com/en/developers/guides/getting-started-with-ai-foundry-and-the-snowflake-managed-mcp/)
-- [Microsoft Foundry Agent Service Quickstart](https://learn.microsoft.com/en-us/azure/foundry/quickstarts/get-started-code)
-- [Microsoft Foundry: Connect to MCP Server Endpoints](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/model-context-protocol)
-- [Create a Fabric Data Agent](https://learn.microsoft.com/en-us/fabric/data-science/how-to-create-data-agent)
-- [Fabric Data Agent End-to-End Tutorial](https://learn.microsoft.com/en-us/fabric/data-science/data-agent-end-to-end-tutorial)
-- [Create a Fabric Lakehouse](https://learn.microsoft.com/en-us/fabric/data-engineering/tutorial-build-lakehouse)
-- [Integrating AI Foundry with Snowflake Cortex Agents (Blog)](https://medium.com/snowflake/integrating-ai-foundry-with-snowflake-cortex-agents-55855c96211c)
-- [Foundry Models: Region Availability](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure)
+| Resource | Link |
+|---|---|
+| Snowflake Managed MCP Server | [docs.snowflake.com](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-mcp) |
+| Snowflake QuickStart: AI Foundry + MCP | [snowflake.com](https://www.snowflake.com/en/developers/guides/getting-started-with-ai-foundry-and-the-snowflake-managed-mcp/) |
+| Microsoft Foundry Agent Quickstart | [learn.microsoft.com](https://learn.microsoft.com/en-us/azure/foundry/quickstarts/get-started-code) |
+| Foundry: Connect to MCP Servers | [learn.microsoft.com](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/model-context-protocol) |
+| Create a Fabric Data Agent | [learn.microsoft.com](https://learn.microsoft.com/en-us/fabric/data-science/how-to-create-data-agent) |
+| Create a Fabric Lakehouse | [learn.microsoft.com](https://learn.microsoft.com/en-us/fabric/data-engineering/tutorial-build-lakehouse) |
+| AI Foundry + Snowflake Cortex Blog | [medium.com/snowflake](https://medium.com/snowflake/integrating-ai-foundry-with-snowflake-cortex-agents-55855c96211c) |
+| Foundry Model Region Availability | [learn.microsoft.com](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure) |
+
+---
+
+<div align="center">
+
+### Built With
+
+<a href="https://www.snowflake.com"><img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="40" alt="Snowflake"></a>
+&nbsp;&nbsp;&nbsp;
+<a href="https://ai.azure.com"><img src="https://cdn.simpleicons.org/microsoftazure/0078D4" width="40" alt="Microsoft Azure"></a>
+&nbsp;&nbsp;&nbsp;
+<a href="https://openai.com"><img src="https://cdn.simpleicons.org/openai/412991" width="40" alt="OpenAI"></a>
+&nbsp;&nbsp;&nbsp;
+<a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-Protocol-00ADD8?style=flat-square" alt="MCP"></a>
+
+---
+
+If you found this useful, give it a star!
+
+[![GitHub stars](https://img.shields.io/github/stars/curious-bigcat/snowflake-cortex-mcp-foundry-fabric-multi-agent?style=social)](https://github.com/curious-bigcat/snowflake-cortex-mcp-foundry-fabric-multi-agent)
+
+</div>
