@@ -36,28 +36,7 @@
 ![Architecture](images/architecture.png)
 
 ```
-                    +---------------------------+
-                    |   User (Teams / Web /      |
-                    |   Copilot / API)           |
-                    +-----------+---------------+
-                                |
-                    +-----------v---------------+
-                    |  Microsoft AI Foundry      |
-                    |  Orchestrator Agent         |
-                    |  (GPT-5.2)                 |
-                    +-----+-------------+-------+
-                          |             |
-             +------------v---+   +----v----------------+
-             |  Snowflake     |   |  Fabric Data        |
-             |  MCP Server    |   |  Agent              |
-             |  (SSE)         |   |  (Lakehouse)        |
-             +-------+-------+   +----+----------------+
-                     |                |
-         +-----------v--+    +-------v-----------+
-         | Cortex Agent |    | Lakehouse Tables  |
-         | - Analyst    |    | - freight_costs   |
-         | - Search x3  |    | - customer_returns|
-         +--------------+    +-------------------+
+
 ```
 
 | Layer | Platform | Purpose |
