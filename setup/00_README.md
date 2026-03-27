@@ -69,7 +69,7 @@ Snowflake and Microsoft Fabric through a unified AI Foundry orchestrator.**
 | **AI Foundry Orchestrator** | <img src="https://img.shields.io/badge/-0078D4?style=flat-square&logo=microsoft&logoColor=white" height="14"> Microsoft Azure | Routes user questions to the right data source |
 | **Snowflake MCP Server** | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="14"> Snowflake | Exposes Cortex Agent as an MCP tool over SSE |
 | **Cortex Agent** | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="14"> Snowflake | Orchestrates Cortex Analyst (SQL) + 3 Cortex Search services |
-| **Fabric Data Agent** | <img src="https://img.shields.io/badge/-742774?style=flat-square&logo=microsoft&logoColor=white" height="14"> Microsoft Fabric | NL2SQL over Lakehouse tables |
+| **Fabric Data Agent** | <img src="https://img.shields.io/badge/-742774?style=flat-square&logo=microsoft&logoColor=white" height="14"> Microsoft Fabric | NL2SQL over Lakehouse Delta tables (freight costs, customer returns) |
 
 ---
 
@@ -105,12 +105,8 @@ Snowflake and Microsoft Fabric through a unified AI Foundry orchestrator.**
 .
 ├── README.md                                   # This guide
 ├── fabric_csv/                                 # Fabric Lakehouse data (CSV files)
-│   ├── carriers.csv                            # Carrier profiles
-│   ├── delivery_status.csv                     # Delivery status records
-│   ├── logistics_incidents_fabric.csv          # Logistics incident reports
-│   ├── shipments.csv                           # Shipment tracking data
-│   ├── store_sales.csv                         # Store sales transactions
-│   └── transportation_routes.csv               # Transportation route data
+│   ├── freight_costs.csv                       # Shipment-level freight cost records
+│   └── customer_returns.csv                    # Customer returns with complaint narratives
 └── setup/
     ├── 00_README.md                            # Setup guide (this file)
     ├── 01_database_and_warehouse.sql           # Phase 1, Step 1
@@ -448,23 +444,19 @@ SHOW MCP SERVERS IN SUPPLY_CHAIN_DEMO.PUBLIC;
 
 ### Step 12 — Upload CSV Files to the Lakehouse
 
-Six CSV files are included in the `fabric_csv/` directory:
+Two CSV files are included in the `fabric_csv/` directory:
 
 | File | Description | Rows | Key Columns |
 |---|---|---|---|
-| `carriers.csv` | Carrier profiles, on-time rates, fleet sizes | 15 | carrier_id, carrier_name, on_time_rate, fleet_size |
-| `shipments.csv` | Shipment tracking with carrier and warehouse links | 400 | shipment_id, po_id, carrier_id, warehouse_id, store_id, status |
-| `store_sales.csv` | Store sales transactions | 1,500 | sale_id, store_id, product_id, quantity_sold, total_revenue |
-| `delivery_status.csv` | Delivery outcomes with on-time flags and delay days | 256 | delivery_id, shipment_id, store_id, on_time, delay_days |
-| `logistics_incidents_fabric.csv` | Logistics incidents with severity and resolution | 60 | incident_id, shipment_id, carrier_id, incident_type, severity |
-| `transportation_routes.csv` | Routes between warehouses, stores, and carriers | 50 | route_id, warehouse_id, store_id, carrier_id, distance_miles |
+| `freight_costs.csv` | Shipment-level freight cost records with carrier performance data | 60 | shipment_id, product_id, carrier_name, origin_warehouse, destination_store, ship_date, shipping_cost_usd, weight_kg, distance_miles, on_time |
+| `customer_returns.csv` | Customer return records with free-text complaint narratives | 40 | return_id, product_id, store_id, return_date, reason_category, customer_complaint, refund_amount |
 
 **Upload steps:**
 
 1. In the Lakehouse explorer, click the **Files** folder
 2. Click the **...** (ellipsis) menu next to **Files** > **New subfolder** > name it `supply_chain_data`
 3. Click the **...** menu next to `supply_chain_data` > **Upload** > **Upload files**
-4. Select all 6 CSV files from the `fabric_csv/` directory and upload them
+4. Select both CSV files from the `fabric_csv/` directory and upload them
 
 ---
 
@@ -478,35 +470,32 @@ For each CSV file:
 4. Use the filename (without `.csv`) as the table name
 5. Click **Load**
 
-Repeat for all 6 files: `carriers`, `shipments`, `store_sales`, `delivery_status`, `logistics_incidents_fabric`, `transportation_routes`
+Repeat for both files: `freight_costs`, `customer_returns`
 
 ---
 
 ### Step 14 — Verify the Lakehouse Tables
 
-1. In the Lakehouse explorer, expand **Tables** > **dbo** and confirm all 6 tables appear
+1. In the Lakehouse explorer, expand **Tables** > **dbo** and confirm both tables appear
 2. Click each table to preview data
 3. Switch to **SQL analytics endpoint** (top-right dropdown) and run:
 
 ```sql
--- Verify shipments data
-SELECT status, COUNT(*) AS shipment_count
-FROM shipments
-GROUP BY status
+-- Verify freight costs
+SELECT carrier_name, COUNT(*) AS shipment_count,
+       AVG(shipping_cost_usd) AS avg_cost,
+       SUM(CASE WHEN on_time = 'Yes' THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS on_time_pct
+FROM freight_costs
+GROUP BY carrier_name
 ORDER BY shipment_count DESC;
 
--- Verify store sales data
-SELECT payment_method, COUNT(*) AS sale_count,
-       SUM(total_revenue) AS total_revenue
-FROM store_sales
-GROUP BY payment_method
-ORDER BY total_revenue DESC;
-
--- Verify delivery status
-SELECT on_time, COUNT(*) AS delivery_count,
-       AVG(delay_days) AS avg_delay
-FROM delivery_status
-GROUP BY on_time;
+-- Verify customer returns
+SELECT reason_category, COUNT(*) AS return_count,
+       SUM(refund_amount) AS total_refunds,
+       COUNT(DISTINCT product_id) AS products_affected
+FROM customer_returns
+GROUP BY reason_category
+ORDER BY return_count DESC;
 ```
 
 ---
@@ -522,13 +511,9 @@ GROUP BY on_time;
 
 1. In the OneLake catalog that appears, find and select `SupplyChainLakehouse`
 2. Click **Add**
-3. In the Explorer pane, expand the lakehouse and select all 6 tables:
-   - `carriers`
-   - `shipments`
-   - `store_sales`
-   - `delivery_status`
-   - `logistics_incidents_fabric`
-   - `transportation_routes`
+3. In the Explorer pane, expand the lakehouse and select both tables:
+   - `freight_costs`
+   - `customer_returns`
 
 #### Add Data Agent Instructions
 
@@ -538,25 +523,22 @@ Click the **Data agent instructions** button (top right) and paste:
 <summary><b>Click to expand instructions</b></summary>
 
 ```
-You are a Supply Chain Data Agent for logistics and sales data.
+You are a Supply Chain Data Agent for freight cost and customer return data.
 
-Data Source: SupplyChainLakehouse with six tables:
+Data Source: SupplyChainLakehouse with two tables:
 
-1. carriers — Carrier profiles: carrier_id, carrier_name, on_time_rate, avg_transit_days, fleet_size, service_regions
-2. shipments — Shipment tracking: shipment_id, po_id, carrier_id, warehouse_id, store_id, ship_date, estimated_arrival, actual_arrival, status, weight_kg, shipping_cost_usd
-3. store_sales — Sales transactions: sale_id, store_id, product_id, sale_date, quantity_sold, unit_price, total_revenue, payment_method, customer_type
-4. delivery_status — Delivery outcomes: delivery_id, shipment_id, store_id, expected_date, actual_date, on_time, delay_days, delivery_condition, receiver_name
-5. logistics_incidents_fabric — Incidents: incident_id, shipment_id, carrier_id, warehouse_id, store_id, incident_date, incident_type, severity, description, delay_hours, resolution
-6. transportation_routes — Routes: route_id, warehouse_id, store_id, carrier_id, distance_miles, avg_transit_hours, route_type, is_active
+1. freight_costs — Shipment-level freight records: shipment_id, product_id, carrier_name, origin_warehouse, destination_store, ship_date, shipping_cost_usd, weight_kg, distance_miles, on_time (Yes/No)
+2. customer_returns — Customer return records with complaint narratives: return_id, product_id, store_id, return_date, reason_category (Damaged in Transit / Quality Issue / Defective / Wrong Item / Changed Mind), customer_complaint (free-text narrative), refund_amount
 
 Guidelines:
-- For sales questions, use the store_sales table
-- For shipment/delivery questions, join shipments with delivery_status on shipment_id
-- For carrier performance, join carriers with shipments on carrier_id
-- For logistics incidents, use logistics_incidents_fabric
-- For route analysis, use transportation_routes
-- Always include relevant context: trends, comparisons, totals
-- Flag critical issues: late deliveries, high-severity incidents, inactive routes
+- For freight/shipping questions, query the freight_costs table
+- For return/complaint questions, query the customer_returns table
+- Use product_id to link records to Snowflake's product catalog (numeric IDs 1001-1050)
+- Use store_id to link returns to specific stores (STR-XXX format)
+- Use carrier_name to analyze carrier performance (FastFreight Logistics, TransGlobal Shipping, etc.)
+- The on_time column in freight_costs is Yes/No — use it for on-time delivery rate calculations
+- The customer_complaint column in customer_returns contains free-text narratives — use LIKE for keyword searches
+- When summarizing complaints, extract key details: what happened, product impact, and resolution requested
 ```
 
 </details>
@@ -566,49 +548,42 @@ Guidelines:
 Click **Example queries** and add these question-SQL pairs:
 
 <details>
-<summary><b>Question 1:</b> Which carriers have the most late deliveries?</summary>
+<summary><b>Question 1:</b> Which carriers have the highest on-time delivery rate?</summary>
 
 ```sql
-SELECT c.carrier_name,
-       COUNT(*) AS total_deliveries,
-       SUM(CASE WHEN d.on_time = 'No' THEN 1 ELSE 0 END) AS late_count,
-       ROUND(AVG(d.delay_days), 1) AS avg_delay_days
-FROM delivery_status d
-JOIN shipments s ON d.shipment_id = s.shipment_id
-JOIN carriers c ON s.carrier_id = c.carrier_id
-WHERE d.on_time = 'No'
-GROUP BY c.carrier_name
-ORDER BY late_count DESC
+SELECT carrier_name, COUNT(*) AS total_shipments,
+       SUM(CASE WHEN on_time = 'Yes' THEN 1 ELSE 0 END) AS on_time_count,
+       SUM(CASE WHEN on_time = 'Yes' THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS on_time_pct
+FROM freight_costs
+GROUP BY carrier_name
+ORDER BY on_time_pct DESC
 ```
 
 </details>
 
 <details>
-<summary><b>Question 2:</b> Which products have the highest total sales revenue?</summary>
+<summary><b>Question 2:</b> What customer returns mention damaged or defective products?</summary>
 
 ```sql
-SELECT product_id,
-       COUNT(*) AS total_sales,
-       SUM(quantity_sold) AS total_units,
-       ROUND(SUM(total_revenue), 2) AS total_revenue
-FROM store_sales
-GROUP BY product_id
-ORDER BY total_revenue DESC
-LIMIT 10
+SELECT return_id, return_date, product_id, store_id, reason_category, customer_complaint, refund_amount
+FROM customer_returns
+WHERE reason_category IN ('Damaged in Transit', 'Defective')
+ORDER BY return_date DESC
 ```
 
 </details>
 
 <details>
-<summary><b>Question 3:</b> Show high-severity logistics incidents</summary>
+<summary><b>Question 3:</b> What is the average shipping cost by carrier?</summary>
 
 ```sql
-SELECT i.incident_id, i.incident_type, i.severity,
-       c.carrier_name, i.incident_date, i.delay_hours, i.resolution
-FROM logistics_incidents_fabric i
-JOIN carriers c ON i.carrier_id = c.carrier_id
-WHERE i.severity IN ('High', 'Critical')
-ORDER BY i.incident_date DESC
+SELECT carrier_name, COUNT(*) AS shipment_count,
+       AVG(shipping_cost_usd) AS avg_cost,
+       AVG(weight_kg) AS avg_weight,
+       AVG(distance_miles) AS avg_distance
+FROM freight_costs
+GROUP BY carrier_name
+ORDER BY avg_cost DESC
 ```
 
 </details>
@@ -616,10 +591,10 @@ ORDER BY i.incident_date DESC
 #### Test the Data Agent
 
 Use the chat interface to test:
-- "Which carriers have the most late deliveries?"
-- "What are the top 10 products by revenue?"
-- "Show me all high-severity logistics incidents"
-- "What is the average delay by carrier?"
+- "Which carrier has the best on-time delivery rate?"
+- "What are the most common return reasons?"
+- "Show me customer complaints about damaged products"
+- "What is the average shipping cost per carrier?"
 
 #### Publish the Data Agent
 
@@ -863,10 +838,8 @@ The orchestrator instructions (`setup/10_foundry_instructions.md`) contain routi
 | Purchase orders, delays | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | snowflake-mcp-supplychain |
 | Warehouses, inspections | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | snowflake-mcp-supplychain |
 | Supplier emails | <img src="https://cdn.simpleicons.org/snowflake/29B5E8" width="12"> Snowflake | snowflake-mcp-supplychain |
-| Store sales, revenue | <img src="https://img.shields.io/badge/-742774?style=flat-square&logo=microsoft&logoColor=white" height="12"> Fabric | sc_fabric_agent |
-| Shipments, carriers, delivery status | <img src="https://img.shields.io/badge/-742774?style=flat-square&logo=microsoft&logoColor=white" height="12"> Fabric | sc_fabric_agent |
-| Logistics incidents | <img src="https://img.shields.io/badge/-742774?style=flat-square&logo=microsoft&logoColor=white" height="12"> Fabric | sc_fabric_agent |
-| Transportation routes | <img src="https://img.shields.io/badge/-742774?style=flat-square&logo=microsoft&logoColor=white" height="12"> Fabric | sc_fabric_agent |
+| Freight costs, shipping, carriers | <img src="https://img.shields.io/badge/-742774?style=flat-square&logo=microsoft&logoColor=white" height="12"> Fabric | sc_fabric_agent |
+| Customer returns, complaints, refunds | <img src="https://img.shields.io/badge/-742774?style=flat-square&logo=microsoft&logoColor=white" height="12"> Fabric | sc_fabric_agent |
 | Cross-platform analysis | Both | snowflake-mcp-supplychain + sc_fabric_agent |
 
 ---
@@ -895,24 +868,24 @@ In your Foundry agent's chat interface, test these queries:
 
 #### <img src="https://img.shields.io/badge/-742774?style=flat-square&logo=microsoft&logoColor=white" height="16"> Fabric-routed queries (via sc_fabric_agent)
 
-6. "Which products have the highest sales?"
-7. "Which carriers have the most late deliveries?"
-8. "Show me all high-severity logistics incidents"
-9. "What are the busiest transportation routes?"
+6. "Which carrier has the best on-time delivery rate?"
+7. "What are the top reasons for customer returns?"
+8. "Show me customer complaints about damaged products"
+9. "What is the average freight cost by carrier?"
 
 #### Cross-platform queries (both tools)
 
-10. "Which high-sales products are at stockout risk?"
-    - *Expected: Agent calls Fabric for top sales, Snowflake for inventory levels, matches on product_id*
-11. "Which suppliers have both high delivery delays AND low reliability scores?"
-    - *Expected: Agent calls Fabric for delivery data AND Snowflake for supplier reliability*
+10. "Are customers returning products from unreliable suppliers?"
+    - *Expected: Agent calls Fabric for customer_returns with product_id, Snowflake for supplier reliability scores, matches on product_id*
+11. "Which products have the most returns and what are their current inventory levels?"
+    - *Expected: Agent calls Fabric for return counts by product_id AND Snowflake for inventory levels, matches on product_id*
 
 | Query Type | Tool | Data Source |
 |---|---|---|
 | Inventory, suppliers, POs | snowflake-mcp-supplychain | Snowflake |
 | Supplier emails, inspections | snowflake-mcp-supplychain | Snowflake |
-| Sales, shipments, deliveries | sc_fabric_agent | Fabric |
-| Logistics incidents, routes | sc_fabric_agent | Fabric |
+| Freight costs, carrier performance | sc_fabric_agent | Fabric |
+| Customer returns, complaints | sc_fabric_agent | Fabric |
 | Cross-platform | Both tools | Snowflake + Fabric |
 
 ---
@@ -969,12 +942,8 @@ curl -X POST "https://<YOUR-FOUNDRY-RESOURCE>.services.ai.azure.com/api/projects
 
 | Table | Rows | Key Data |
 |---|---|---|
-| `carriers` | 15 | Carrier profiles, on-time rates, fleet sizes |
-| `shipments` | 400 | Shipment tracking with PO, carrier, warehouse, store links |
-| `store_sales` | 1,500 | Sales transactions with product, store, revenue |
-| `delivery_status` | 256 | Delivery outcomes, on-time flags, delay days |
-| `logistics_incidents_fabric` | 60 | Incident reports with severity and resolution |
-| `transportation_routes` | 50 | Routes between warehouses, stores, carriers |
+| `freight_costs` | 60 | Shipment-level freight records: carrier name, shipping cost, weight, distance, on-time flag |
+| `customer_returns` | 40 | Customer return records with reason categories and free-text complaint narratives |
 
 </details>
 

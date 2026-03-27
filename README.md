@@ -44,13 +44,9 @@ Snowflake and Microsoft Fabric through a unified AI Foundry orchestrator.**
                     │              │
         ┌───────────▼──┐    ┌─────▼────────────┐
         │ Cortex Agent │    │ Lakehouse Tables  │
-        │ - Analyst    │    │ - shipments       │
-        │ - Search x2  │    │ - store_sales     │
-        └──────────────┘    │ - carriers        │
-                            │ - delivery_status │
-                            │ - incidents       │
-                            │ - routes          │
-                            └──────────────────┘
+        │ - Analyst    │    │ - freight_costs   │
+        │ - Search x2  │    │ - customer_returns│
+        └──────────────┘    └──────────────────┘
 ```
 
 ## How It Works
@@ -60,7 +56,7 @@ The orchestrator uses two tools, each with different data. It picks the right to
 | Tool | Platform | Data |
 |---|---|---|
 | **snowflake-mcp-supplychain** | Snowflake | Suppliers, purchase orders, inventory, warehouses, supplier emails, inspection reports |
-| **sc_fabric_agent** | Microsoft Fabric | Store sales, shipments, carriers, delivery status, logistics incidents |
+| **sc_fabric_agent** | Microsoft Fabric | Freight costs/shipment data, customer returns with complaint narratives |
 
 For questions that span both domains, the orchestrator calls both tools and combines the results.
 
@@ -70,12 +66,8 @@ For questions that span both domains, the orchestrator calls both tools and comb
 .
 ├── README.md                          # This file
 ├── fabric_csv/                        # CSV files for Fabric Lakehouse
-│   ├── carriers.csv
-│   ├── delivery_status.csv
-│   ├── logistics_incidents_fabric.csv
-│   ├── shipments.csv
-│   ├── store_sales.csv
-│   └── transportation_routes.csv
+│   ├── freight_costs.csv
+│   └── customer_returns.csv
 └── setup/
     ├── 00_README.md                   # Full setup guide (start here)
     ├── 01–09_*.sql                    # Snowflake setup scripts
@@ -101,13 +93,13 @@ See the **[Full Setup Guide](setup/00_README.md)** for step-by-step instructions
 - "Search supplier emails about quality complaints"
 
 **Fabric only:**
-- "Which products have the highest sales?"
-- "Which carriers have the most late deliveries?"
-- "Show me all high-severity logistics incidents"
+- "Which carrier has the best on-time delivery rate?"
+- "What are the top reasons for customer returns?"
+- "Show me customer complaints about damaged products"
 
 **Cross-platform (both tools):**
-- "Which high-sales products are at stockout risk?"
-- "Which suppliers have both high delivery delays AND low reliability scores?"
+- "Are customers returning products from unreliable suppliers?"
+- "Which products have the most returns and what are their inventory levels?"
 
 ---
 
